@@ -1,4 +1,92 @@
-arab_social_app.htmlimport 'dart:convert';
+import pygame
+import sys
+import math
+
+# تهيئة Pygame
+pygame.init()
+
+# إعدادات الشاشة
+SCREEN_WIDTH = 900
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("arap - Football Game")
+
+# الألوان
+GREEN = (34, 139, 34)
+WHITE = (255, 255, 255)
+RED = (220, 20, 60)
+BLUE = (30, 144, 255)
+BLACK = (0, 0, 0)
+YELLOW = (255, 215, 0)
+
+# معدل تحديث إطارات اللعبة
+clock = pygame.time.Clock()
+FPS = 60
+
+# فئة المرمى
+GOAL_HEIGHT = 160
+GOAL_Y1 = (SCREEN_HEIGHT - GOAL_HEIGHT) // 2
+GOAL_Y2 = GOAL_Y1 + GOAL_HEIGHT
+
+# فئة اللاعب
+class Player:
+    def __init__(self, x, y, color, controls):
+        self.x = x
+        self.y = y
+        self.radius = 20
+        self.color = color
+        self.speed = 5
+        self.controls = controls  # [up, down, left, right]
+
+    def move(self, keys):
+        if keys[self.controls[0]] and self.y - self.radius > 10:  # Up
+            self.y -= self.speed
+        if keys[self.controls[1]] and self.y + self.radius < SCREEN_HEIGHT - 10:  # Down
+            self.y += self.speed
+        if keys[self.controls[2]] and self.x - self.radius > 10:  # Left
+            self.x -= self.speed
+        if keys[self.controls[3]] and self.x + self.radius < SCREEN_WIDTH - 10:  # Right
+            self.x += self.speed
+
+    def draw(self, surface):
+        pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.radius)
+        pygame.draw.circle(surface, BLACK, (int(self.x), int(self.y)), self.radius, 2)
+
+# فئة الكرة
+class Ball:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.radius = 12
+        self.vx = 0
+        self.vy = 0
+        self.friction = 0.98
+
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.vx *= self.friction
+        self.vy *= self.friction
+
+        # ارتداد الكرة من الجدران العلوية والسفلية
+        if self.y - self.radius <= 10 or self.y + self.radius >= SCREEN_HEIGHT - 10:
+            self.vy *= -1
+
+        # ارتداد الكرة من الجدران الجانبية (خارج منطقة المرمى)
+        if (self.x - self.radius <= 10 or self.x + self.radius >= SCREEN_WIDTH - 10):
+            if not (GOAL_Y1 <= self.y <= GOAL_Y2):
+                self.vx *= -1
+
+    def draw(self, surface):
+        pygame.draw.circle(surface, WHITE, (int(self.x), int(self.y)), self.radius)
+        pygame.draw.circle(surface, BLACK, (int(self.x), int(self.y)), self.radius, 2)
+
+    def reset(self):
+        self.x = SCREEN_WIDTH // 2
+        self.y = SCREEN_HEIGHT // 2
+        self.vx = 0
+        
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
